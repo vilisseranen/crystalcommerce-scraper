@@ -1,8 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import requests
 import sys
-from urllib import urlencode
+from urllib.parse import urlencode
 from bs4 import BeautifulSoup
 import json
 
