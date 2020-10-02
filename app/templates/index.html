@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>MTG cards</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.0/css/bulma.min.css">
+    <!-- <script defer src="https://use.fontawesome.com/releases/v5.14.0/js/all.js"></script> -->
+</head>
+
+<body>
+    <section class="section">
+        <div class="container">
+            <h1 class="title">
+                MTG card price checker
+            </h1>
+        </div>
+        <section class="section">
+            <form action="" method="post" novalidate>
+                {{ form.hidden_tag() }}
+                <div class="field">
+                    <label class="label">Card List</label>
+                    <div class="control">
+                        {{ form.list(class="textarea") }}
+                    </div>
+                </div>
+                {{ form.submit() }}
+            </form>
+        </section>
+        <section class="section">
+            <div class="field">
+                <label class="label">Languages</label>
+                <label class="checkbox">
+                    <input type="checkbox">
+                    French
+                </label>
+                <label class="checkbox">
+                    <input type="checkbox">
+                    English
+                </label>
+            </div>
+            <div class="field">
+                <label class="label">Stores</label>
+                <label class="checkbox">
+                    <input type="checkbox">
+                    Le valet de coeur
+                </label>
+                <label class="checkbox">
+                    <input type="checkbox">
+                    Le Secret des korrigans
+                </label>
+                <label class="checkbox">
+                    <input type="checkbox">
+                    Multizone
+                </label>
+            </div>
+        </section>
+        {% if cardList %}
+        <section class="section">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Card</th>
+                        {% for store in stores %}
+                        <th><abbr title="{{ store['name'] }}"">{{ store['abbr'] }}</abbr></th>
+                        {% endfor %}
+                        <th>Min Price</th>
+                    </tr>
+                </thead>
+                <!-- compute with JS-->
+                <!-- <tfoot>
+                    <tr>
+                        <th>Total</th>
+                        <th>$4.5</th>
+                        <th>$4</th>
+                        <th>$4</th>
+                        <th>$3.5</th>
+                    </tr>
+                </tfoot> -->
+                <tbody>
+                    {% for card in cardList %}
+                    <tr>
+                        <th>{{ card }}</th>
+                        {% for store in stores %}
+                        {% if store['name'] in cardList[card] %}
+                        <td>${{ cardList[card][store['name']]['price'] }}</td>
+                        {% else %}
+                        <td></td>
+                        {% endif %}
+                        {% endfor %}
+                        <th>?</th>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+        {% endif %}
+</body>
+
+</html>
