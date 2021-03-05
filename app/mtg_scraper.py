@@ -16,13 +16,13 @@ STORES = [
     {"name": "Multizone Gatineau",
         "url": "https://jittedivision.crystalcommerce.com", "abbr": "MZ"},
     {"name": "Carta Magicka", "url": "https://www.cartamagica.com", "abbr": "CM"},
-    {"name": "Gamekeeper", "url": "https://www.gamekeeperverdun.com", "abbr": "GK"}
+    {"name": "Gamekeeper", "url": "https://www.gamekeeperverdun.com", "abbr": "GK"},
+    {"name": "Chez Geeks", "url": "http://www.chezgeeks.com", "abbr": "CG"}
 ]
 
 LANGUAGES = {
     'fr': 'French',
-    'en': 'English',
-    'na': 'Unknown'
+    'en': 'English'
 }
 
 CONDITIONS = {
@@ -55,6 +55,8 @@ def read_and_encode_wishlist(card, file):
 
 
 def retrieve_cards_info(wishlist):
+    # TODO: only query selected stores because it takes time
+    # TODO: parallelize queries
     cards_info = {}
     for store in STORES:
         store_url = "{}/products/multi_search".format(store['url'])
@@ -90,7 +92,7 @@ def retrieve_cards_info(wishlist):
                         card_info_variant["set"] = card_set.text.strip()
                         card_info_variant["price"] = float(
                             card_in_set_price_info[1])
-                        card_info_variant["store"] = store['name']
+                        card_info_variant["store"] = store['abbr']
                         cards_info[card_name.text].append(card_info_variant)
     return cards_info
 
@@ -105,7 +107,7 @@ def build_buylist(cards_info, languages, conditions):
         buylist[card] = {}
         for store in STORES:
             cards_in_store = [card_in_store for card_in_store in cards_info[card]
-                              if card_in_store['store'] == store['name']]
+                              if card_in_store['store'] == store['abbr']]
             if len(cards_in_store) > 0:
                 prices = [card_price['price'] for card_price in cards_in_store]
                 min_price = min(prices)
@@ -117,7 +119,7 @@ def build_buylist(cards_info, languages, conditions):
                         card for card in cards_in_store if card['condition'] in conditions_filter]
                 for card_in_store in cards_in_store:
                     if card_in_store['price'] == min_price:
-                        buylist[card][store['name']] = card_in_store
+                        buylist[card][store['abbr']] = card_in_store
     return buylist
 
 
@@ -129,9 +131,9 @@ def display_buylist(buylist, output):
             card_line = '"{}"'.format(card)
             for store in STORES:
                 card_line += ","
-                if store['name'] in buylist[card]:
+                if store['abbr'] in buylist[card]:
                     card_line += "{}".format(buylist[card]
-                                             [store['name']]['price'])
+                                             [store['abbr']]['price'])
             print(card_line)
 
 

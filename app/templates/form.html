@@ -1,0 +1,36 @@
+{% extends "index.html" %}
+
+{% block form %}
+<form action="" method="post" novalidate>
+    {{ form.hidden_tag() }}
+    <div class="columns">
+        <div class="field column is-full">
+            <label class="label">Card List</label>
+            <div class="control">
+                {{ form.list(class="textarea") }}
+            </div>
+        </div>
+    </div>
+    <div class="columns">
+        <div class="field column is-full">
+            <div class="control">
+                {{ form.submit(class="button is-link") }}
+            </div>
+        </div>
+    </div>
+    <div class="columns">
+        <div class="field column is-one-third">
+            <label class="label">Languages</label>
+            {{ form.languages() }}
+        </div>
+        <div class="field column is-one-third">
+            <label class="label">Stores</label>
+            {{ form.stores() }}
+        </div>
+        <div class="field column is-one-third">
+            <label class="label">Conditions</label>
+            {{ form.conditions() }}
+        </div>
+    </div>
+</form>
+{% endblock %}
