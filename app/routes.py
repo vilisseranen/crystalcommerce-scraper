@@ -13,6 +13,7 @@ def index():
     listForm = InputForm()
     cardsInfo = None
     buylist = None
+    totals = None
     if listForm.validate_on_submit():
         query = read_and_encode_wishlist(
             card=listForm.list.data, file=None)
