@@ -17,7 +17,10 @@ STORES = [
         "url": "https://jittedivision.crystalcommerce.com", "abbr": "MZ"},
     {"name": "Carta Magicka", "url": "https://www.cartamagica.com", "abbr": "CM"},
     {"name": "Gamekeeper", "url": "https://www.gamekeeperverdun.com", "abbr": "GK"},
-    {"name": "Chez Geeks", "url": "http://www.chezgeeks.com", "abbr": "CG"}
+    {"name": "Chez Geeks", "url": "http://www.chezgeeks.com", "abbr": "CG"},
+    {"name": "3 kings loot", "url": "https://www.threekingsloot.com", "abbr": "3K"},
+    {"name": "Jeux 3 dragons", "url": "https://www.jeux3dragons.com", "abbr": "3D"},
+    {"name": "L'abyss", "url": "https://www.labyss.com", "abbr": "AB"}
 ]
 
 LANGUAGES = {
@@ -76,6 +79,9 @@ def retrieve_cards_info(wishlist):
                     card_info_variant = {}
                     card_in_set_quality = card_in_set_variant.find(
                         'span', class_='variant-short-info')
+                    if not card_in_set_quality:
+                        # For some stores, means item is not in store
+                        continue
                     card_in_set_price = card_in_set_variant.find(
                         'span', class_='price')
                     card_in_set_quality_info = card_in_set_quality.text.split(
@@ -89,7 +95,10 @@ def retrieve_cards_info(wishlist):
                             )
                         else:
                             card_info_variant["language"] = LANGUAGES['na']
-                        card_info_variant["set"] = card_set.text.strip()
+                        if card_set:
+                            card_info_variant["set"] = card_set.text.strip()
+                        else:
+                            card_info_variant["set"] = "Unknown"
                         card_info_variant["price"] = float(
                             card_in_set_price_info[1])
                         card_info_variant["store"] = store['abbr']
