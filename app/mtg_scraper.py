@@ -57,11 +57,10 @@ def read_and_encode_wishlist(card, file):
     return urlencode(wishlist)
 
 
-def retrieve_cards_info(wishlist):
-    # TODO: only query selected stores because it takes time
+def retrieve_cards_info(wishlist, selected_stores):
     # TODO: parallelize queries
     cards_info = {}
-    for store in STORES:
+    for store in selected_stores:
         store_url = "{}/products/multi_search".format(store['url'])
         results = requests.post(store_url, data=wishlist)
         soup = BeautifulSoup(results.content, 'html.parser')
