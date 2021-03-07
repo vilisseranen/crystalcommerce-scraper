@@ -21,6 +21,7 @@ def index():
             card=listForm.list.data, file=None)
         if listForm.stores.data:
             selected_stores = [store for store in STORES if store['abbr'] in listForm.stores.data]
+        selected_stores = [store for store in selected_stores if store['name'] != 'Min']
         cardsInfo = retrieve_cards_info(query, selected_stores)
     if cardsInfo:
         languages_filter = listForm.languages.data if listForm.languages.data else None
