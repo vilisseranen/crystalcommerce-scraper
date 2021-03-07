@@ -76,7 +76,7 @@
             </tbody>
             <tfoot>
                 <tr>
-                    <th>Totals</th>
+                    <th><abbr title="Only count the cards for which the store is the cheapest.">Totals</abbr></th>
                     {% for store in stores %}
                     <th>{{ "$%.2f"|format(totals[store['abbr']]) }}</th>
                     {% endfor %}
