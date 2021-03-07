@@ -32,6 +32,20 @@
     </section>
     {% if cardList %}
     <section class="section">
+        {% if missing_cards | length > 0 %}
+        <article class="message is-warning">
+            <div class="message-header">
+              <p>The following cards were not found: {{ missing_cards }}</p>
+            </div>
+            <div class="message-body">
+                Make sure you are using the exact name for the card.
+                <ul>
+                    <li>If it is a double faced card, use the <strong>//</strong> notation (ex: <em>Cosima, God of the Voyage // The Omenkeel</em>)</li>
+                    <li>If it is a special card, include the full name as it appears in the shop (ex: if you enter <em>Derevi, Empyrial Tactician</em>, the system won't find <em>Derevi, Empyrial Tactician - Foil Etched</em>)</li>
+                </ul>
+            </div>
+        </article>
+        {% endif %}
         <table class="table">
             <thead>
                 <tr>
@@ -43,7 +57,7 @@
                 </tr>
             </thead>
             <tbody>
-                {{ stores.append({'name': 'Min', 'abbr': 'min'}) }}
+                {{ stores.append({'name': 'Min', 'abbr': 'min'}) or "" }}
                 {% for card in cardList %}
                 <tr>
                     <th>{{ card }}</th>
@@ -60,14 +74,14 @@
                 </tr>
                 {% endfor %}
             </tbody>
-            <thead>
+            <tfoot>
                 <tr>
                     <th>Totals</th>
                     {% for store in stores %}
                     <th>{{ "$%.2f"|format(totals[store['abbr']]) }}</th>
                     {% endfor %}
                 </tr>
-            </thead>
+            </tfoot>
         </table>
     </section>
     {% endif %}

@@ -2,6 +2,7 @@ from app import app
 from app.list import InputForm
 
 from flask import render_template, flash, redirect
+from re import sub
 
 from app.mtg_scraper import read_and_encode_wishlist, retrieve_cards_info, build_buylist
 from app.mtg_scraper import STORES, LANGUAGES, CONDITIONS
@@ -14,21 +15,19 @@ def index():
     cardsInfo = None
     buylist = None
     totals = None
+    missing_cards = None
     if listForm.validate_on_submit():
         query = read_and_encode_wishlist(
             card=listForm.list.data, file=None)
-        cardsInfo = retrieve_cards_info(query)
+        if listForm.stores.data:
+            selected_stores = [store for store in STORES if store['abbr'] in listForm.stores.data]
+        cardsInfo = retrieve_cards_info(query, selected_stores)
     if cardsInfo:
         languages_filter = listForm.languages.data if listForm.languages.data else None
         conditions_filter = listForm.conditions.data if listForm.conditions.data else None
         buylist = build_buylist(cardsInfo, languages_filter, conditions_filter) # We should filter by store here or before
-        selected_stores = [store for store in STORES if store['abbr'] in listForm.stores.data]
-        non_selected_stores = [store for store in STORES if store['abbr'] not in listForm.stores.data]
         totals = {store['abbr']: 0 for store in selected_stores}
         for card, stores in buylist.items():
-            ## remove non selected stores
-            for store in non_selected_stores:
-                stores.pop(store['abbr'], None)
             if stores:
                 cheapest_store = min(stores, key = lambda k: stores[k]['price'])
                 most_expensive_store = max(stores, key = lambda k: stores[k]['price'])
@@ -38,4 +37,14 @@ def index():
                 totals[cheapest_store] += stores[cheapest_store]['price']
             buylist[card] = stores
         totals['min'] = sum(totals.values())
-    return render_template('form.html', form=listForm, cardList=buylist, stores=selected_stores, languages=LANGUAGES, totals=totals)
+        missing_cards = [sub('^(\d+x?)?(.*)', '\\2', line).strip() for line in listForm.list.data.split("\n")]
+        missing_cards = ", ".join([item for item in missing_cards if item not in list(buylist.keys())])
+        
+    return render_template('form.html',
+        form=listForm,
+        cardList=buylist,
+        stores=selected_stores,
+        languages=LANGUAGES,
+        totals=totals,
+        missing_cards=missing_cards
+    )
