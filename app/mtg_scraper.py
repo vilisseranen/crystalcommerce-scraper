@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 import json
 import argparse
 import locale
+import re
 
 # List of stores close to me
 STORES = [
@@ -37,36 +38,47 @@ CONDITIONS = {
     'hp': 'Heavy Play'
 }
 
+CARDS_IGNORE = [
+    'Plains', 'Swamp', 'Mountain', 'Island', 'Forest'
+]
+
 def main(card, file, languages, conditions, output):
-    wishlist = read_and_encode_wishlist(card, file)
-    cards_info = retrieve_cards_info(wishlist)
+    wishlist = read_and_create_wishlist(card, file)
+    cards_info, cards_ignored = retrieve_cards_info(wishlist)
     buylist = build_buylist(cards_info, languages, conditions)
     display_buylist(buylist, output)
 
 
-def read_and_encode_wishlist(card, file):
-    wishlist = ""
+def read_and_create_wishlist(card, file):
+    wishlist = []
     if card is not None:
-        wishlist = [card.lower() for card in card.strip().split('\r\n')]
-        wishlist = {'query': card}
+        for card in card.strip().split('\r\n'):
+            card_search = re.search('(\d+x?\s)?(.+)', card)
+            card_name = card_search.group(2)
+            if card_name not in CARDS_IGNORE:
+                wishlist.append(card_name)
     else:
         with open(file) as f:
             wishlist = [card.lower()
                         for card in f.read().strip().split('\r\n')]
-            wishlist = {'query': '\r\n'.join(wishlist)}
-    return urlencode(wishlist)
-
+    return wishlist
 
 def retrieve_cards_info(wishlist, selected_stores):
+    encoded_wishlist = urlencode({'query': '\r\n'.join(wishlist)})
     # TODO: parallelize queries
     cards_info = {}
+    cards_ignored = []
     for store in selected_stores:
         store_url = "{}/products/multi_search".format(store['url'])
-        results = requests.post(store_url, data=wishlist)
+        results = requests.post(store_url, data=encoded_wishlist)
         soup = BeautifulSoup(results.content, 'html.parser')
         card_list = soup.find_all('div', class_='products-container')
         for card in card_list:
             card_name = card.find('h4', class_='name')
+            if card_name.text.lower() not in [card.lower() for card in wishlist]:
+                print("{} is not in the wish list".format(card_name.text))
+                cards_ignored.append(card_name.text)
+                continue
             if card_name.text not in cards_info:
                 cards_info[card_name.text] = []
             card_in_sets = card.find_all('div', class_='inner')
@@ -103,7 +115,7 @@ def retrieve_cards_info(wishlist, selected_stores):
                         card_info_variant["price"] = locale.atof(card_in_set_price_info[1].replace(',', ''))
                         card_info_variant["store"] = store['abbr']
                         cards_info[card_name.text].append(card_info_variant)
-    return cards_info
+    return cards_info, list(set(cards_ignored))
 
 
 def build_buylist(cards_info, languages, conditions):
