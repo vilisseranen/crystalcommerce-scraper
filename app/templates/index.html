@@ -30,7 +30,6 @@
     <section class="section">
         {% block form %}{% endblock %}
     </section>
-    {% if cardList %}
     <section class="section">
         {% if missing_cards | length > 0 %}
         <article class="message is-warning">
@@ -53,13 +52,14 @@
         {% if ignored_cards | length > 0 %}
         <article class="message is-warning">
             <div class="message-header">
-                <p>The following cards were ignored: {{ ignored_cards }}.</p>
+                <p>The following results were ignored (basic lands are always ignored)</p>
             </div>
             <div class="message-body">
-                Note: We are always ignoring basic lands.
+                {{ ignored_cards }}
             </div>
         </article>
         {% endif %}
+        {% if cardList %}
         <table class="table">
             <thead>
                 <tr>

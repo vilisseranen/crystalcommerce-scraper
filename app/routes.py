@@ -15,7 +15,8 @@ def index():
     cardsInfo = None
     buylist = None
     totals = None
-    missing_cards = None
+    missing_cards = []
+    cardsIgnored = []
     if listForm.validate_on_submit():
         query = read_and_create_wishlist(
             card=listForm.list.data, file=None)
@@ -23,6 +24,7 @@ def index():
             selected_stores = [store for store in STORES if store['abbr'] in listForm.stores.data]
         selected_stores = [store for store in selected_stores if store['name'] != 'Min']
         cardsInfo, cardsIgnored = retrieve_cards_info(query, selected_stores)
+        missing_cards = [sub('^(\d+x?)?(.*)', '\\2', line).strip() for line in listForm.list.data.split("\n")]
     if cardsInfo:
         languages_filter = listForm.languages.data if listForm.languages.data else None
         conditions_filter = listForm.conditions.data if listForm.conditions.data else None
@@ -38,9 +40,8 @@ def index():
                 totals[cheapest_store] += stores[cheapest_store]['price']
             buylist[card] = stores
         totals['min'] = sum(totals.values())
-        missing_cards = [sub('^(\d+x?)?(.*)', '\\2', line).strip() for line in listForm.list.data.split("\n")]
         buylistKeysLowerCase = [k.lower() for k, v in buylist.items()]
-        missing_cards = ", ".join([item for item in missing_cards if item.lower() not in buylistKeysLowerCase])
+        missing_cards = [item for item in missing_cards if item.lower() not in buylistKeysLowerCase]
         
     return render_template('form.html',
         form=listForm,
@@ -48,6 +49,6 @@ def index():
         stores=selected_stores,
         languages=LANGUAGES,
         totals=totals,
-        missing_cards=missing_cards,
+        missing_cards=", ".join(missing_cards),
         ignored_cards=', '.join(CARDS_IGNORE + cardsIgnored) # We ignore some cards by default (basic lands) + others returned by the website
     )
