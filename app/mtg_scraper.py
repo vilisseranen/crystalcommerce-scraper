@@ -25,7 +25,8 @@ STORES = [
 
 LANGUAGES = {
     'fr': 'French',
-    'en': 'English'
+    'en': 'English',
+    'na': 'Not specified'
 }
 
 CONDITIONS = {
