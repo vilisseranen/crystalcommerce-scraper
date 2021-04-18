@@ -6,6 +6,7 @@ from urllib.parse import urlencode
 from bs4 import BeautifulSoup
 import json
 import argparse
+import locale
 
 # List of stores close to me
 STORES = [
@@ -25,7 +26,8 @@ STORES = [
 
 LANGUAGES = {
     'fr': 'French',
-    'en': 'English'
+    'en': 'English',
+    'na': 'Not specified'
 }
 
 CONDITIONS = {
@@ -35,10 +37,8 @@ CONDITIONS = {
     'hp': 'Heavy Play'
 }
 
-
 def main(card, file, languages, conditions, output):
     wishlist = read_and_encode_wishlist(card, file)
-    print(wishlist)
     cards_info = retrieve_cards_info(wishlist)
     buylist = build_buylist(cards_info, languages, conditions)
     display_buylist(buylist, output)
@@ -98,8 +98,9 @@ def retrieve_cards_info(wishlist, selected_stores):
                             card_info_variant["set"] = card_set.text.strip()
                         else:
                             card_info_variant["set"] = "Unknown"
-                        card_info_variant["price"] = float(
-                            card_in_set_price_info[1])
+                        # We should be able to load the locale in the docker container to translate
+                        # prices > 1000 (with comma), but I have trouble loading the locale in alpine
+                        card_info_variant["price"] = locale.atof(card_in_set_price_info[1].replace(',', ''))
                         card_info_variant["store"] = store['abbr']
                         cards_info[card_name.text].append(card_info_variant)
     return cards_info
