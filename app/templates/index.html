@@ -30,22 +30,36 @@
     <section class="section">
         {% block form %}{% endblock %}
     </section>
-    {% if cardList %}
     <section class="section">
         {% if missing_cards | length > 0 %}
         <article class="message is-warning">
             <div class="message-header">
-              <p>The following cards were not found: {{ missing_cards }}</p>
+                <p>The following cards were not found (or ignored): {{ missing_cards }}</p>
             </div>
             <div class="message-body">
                 Make sure you are using the exact name for the card.
                 <ul>
-                    <li>If it is a double faced card, use the <strong>//</strong> notation (ex: <em>Cosima, God of the Voyage // The Omenkeel</em>)</li>
-                    <li>If it is a special card, include the full name as it appears in the shop (ex: if you enter <em>Derevi, Empyrial Tactician</em>, the system won't find <em>Derevi, Empyrial Tactician - Foil Etched</em>)</li>
+                    <li>If it is a double faced card, use the <strong>//</strong> notation (ex: <em>Cosima, God of the
+                            Voyage // The Omenkeel</em>)</li>
+                    <li>If it is a special card, include the full name as it appears in the shop (ex: if you enter
+                        <em>Derevi, Empyrial Tactician</em>, the system won't find <em>Derevi, Empyrial Tactician - Foil
+                            Etched</em>)
+                    </li>
                 </ul>
             </div>
         </article>
         {% endif %}
+        {% if ignored_cards | length > 0 %}
+        <article class="message is-warning">
+            <div class="message-header">
+                <p>The following results were ignored (basic lands are always ignored)</p>
+            </div>
+            <div class="message-body">
+                {{ ignored_cards }}
+            </div>
+        </article>
+        {% endif %}
+        {% if cardList %}
         <table class="table">
             <thead>
                 <tr>
@@ -65,8 +79,8 @@
                     {% if store['abbr'] in cardList[card] %}
                     <td {% if 'class' in cardList[card][store['abbr']]
                         %}class="{{ cardList[card][store['abbr']]['class'] }}" {% endif %}><abbr
-                            title="{% if store['abbr'] == 'min' %}{{ cardList[card][store['abbr']]['store'] }}: {% endif %}{{ cardList[card][store['abbr']]['condition'] }} / {{ cardList[card][store['abbr']]['language'] }} ({{ cardList[card][store['abbr']]['set'] }})">${{
-                            cardList[card][store['abbr']]['price'] }}</abbr></td>
+                            title="{% if store['abbr'] == 'min' %}{{ cardList[card][store['abbr']]['store'] }}: {% endif %}{{ cardList[card][store['abbr']]['condition'] }} / {{ cardList[card][store['abbr']]['language'] }} ({{ cardList[card][store['abbr']]['set'] }})">{{
+                            "$%.2f"|format(cardList[card][store['abbr']]['price']) }}</abbr></td>
                     {% else %}
                     <td>-</td>
                     {% endif %}

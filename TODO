@@ -1,6 +1,3 @@
-- filters
-- min price per card (JS)
-- totals (JS)
-- improve UI (CSS)
-- select card for each store
 - export buylist
+- multithreading on queries
+- handle foil, foiled-etched (merge the results with the base name - with suffix " - Foil .*)
