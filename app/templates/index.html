@@ -79,7 +79,7 @@
                     {% if store['abbr'] in cardList[card] %}
                     <td {% if 'class' in cardList[card][store['abbr']]
                         %}class="{{ cardList[card][store['abbr']]['class'] }}" {% endif %}><abbr
-                            title="{% if store['abbr'] == 'min' %}{{ cardList[card][store['abbr']]['store'] }}: {% endif %}{{ cardList[card][store['abbr']]['condition'] }} / {{ cardList[card][store['abbr']]['language'] }} ({{ cardList[card][store['abbr']]['set'] }})">{{
+                            title="{% if store['abbr'] == 'min' %}{{ cardList[card][store['abbr']]['store'] }}: {% endif %}{{ cardList[card][store['abbr']]['condition'] }} / {{ cardList[card][store['abbr']]['language'] }} ({{ cardList[card][store['abbr']]['set'] }}) - {{ cardList[card][store['abbr']]['variant_name'] }}">{{
                             "$%.2f"|format(cardList[card][store['abbr']]['price']) }}</abbr></td>
                     {% else %}
                     <td>-</td>
