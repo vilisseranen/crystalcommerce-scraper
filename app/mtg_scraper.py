@@ -8,6 +8,7 @@ import json
 import argparse
 import locale
 import re
+import concurrent.futures
 
 # List of stores close to me
 STORES = [
@@ -63,15 +64,22 @@ def read_and_create_wishlist(card, file):
                         for card in f.read().strip().split('\r\n')]
     return wishlist
 
+def query_store(store, query):
+    store_url = "{}/products/multi_search".format(store['url'])
+    return {'store': store, 'content': requests.post(store_url, data=query).content}
+
 def retrieve_cards_info(wishlist, selected_stores, include_foil):
     encoded_wishlist = urlencode({'query': '\r\n'.join(wishlist)})
-    # TODO: parallelize queries
+
+    html_results = []
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        pool = [executor.submit(query_store, store, encoded_wishlist) for store in selected_stores]
+        for i in concurrent.futures.as_completed(pool):
+            html_results.append(i.result())
     cards_info = {}
     cards_ignored = []
-    for store in selected_stores:
-        store_url = "{}/products/multi_search".format(store['url'])
-        results = requests.post(store_url, data=encoded_wishlist)
-        soup = BeautifulSoup(results.content, 'html.parser')
+    for html in html_results:
+        soup = BeautifulSoup(html['content'], 'html.parser')
         card_list = soup.find_all('div', class_='products-container')
         for card in card_list:
             card_name = card.find('h4', class_='name')
@@ -125,7 +133,7 @@ def retrieve_cards_info(wishlist, selected_stores, include_foil):
                         # We should be able to load the locale in the docker container to translate
                         # prices > 1000 (with comma), but I have trouble loading the locale in alpine
                         card_info_variant["price"] = locale.atof(card_in_set_price_info[1].replace(',', ''))
-                        card_info_variant["store"] = store['abbr']
+                        card_info_variant["store"] = html['store']['abbr']
                         card_info_variant["variant_name"] = card_name.text
                         cards_info[card_basename].append(card_info_variant)
     return cards_info, list(set(cards_ignored))
