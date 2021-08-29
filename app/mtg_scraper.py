@@ -8,6 +8,7 @@ import json
 import argparse
 import locale
 import re
+import concurrent.futures
 
 # List of stores close to me
 STORES = [
@@ -63,24 +64,43 @@ def read_and_create_wishlist(card, file):
                         for card in f.read().strip().split('\r\n')]
     return wishlist
 
-def retrieve_cards_info(wishlist, selected_stores):
+def query_store(store, query):
+    store_url = "{}/products/multi_search".format(store['url'])
+    return {'store': store, 'content': requests.post(store_url, data=query).content}
+
+def retrieve_cards_info(wishlist, selected_stores, include_foil):
     encoded_wishlist = urlencode({'query': '\r\n'.join(wishlist)})
-    # TODO: parallelize queries
+
+    html_results = []
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        pool = [executor.submit(query_store, store, encoded_wishlist) for store in selected_stores]
+        for i in concurrent.futures.as_completed(pool):
+            html_results.append(i.result())
     cards_info = {}
     cards_ignored = []
-    for store in selected_stores:
-        store_url = "{}/products/multi_search".format(store['url'])
-        results = requests.post(store_url, data=encoded_wishlist)
-        soup = BeautifulSoup(results.content, 'html.parser')
+    for html in html_results:
+        soup = BeautifulSoup(html['content'], 'html.parser')
         card_list = soup.find_all('div', class_='products-container')
         for card in card_list:
             card_name = card.find('h4', class_='name')
-            if card_name.text.lower() not in [card.lower() for card in wishlist]:
+            card_search = re.search("([a-z'\-,]+((,)?\s[a-z][a-z'\-]*[a-z]*)*(( \/\/ )([a-z'\-,]+((,)?\s[a-z][a-z'\-]*[a-z]*)*))?)", card_name.text, flags=re.IGNORECASE)
+            if card_search != None:
+                card_basename = card_search.group(1)
+                print("Found card {:<80.80} is {}".format(card_name.text, card_basename))
+            else:
+                card_basename = card_name.text
+                print("Not matching a card name: {}".format(card_basename))
+            if card_basename.lower() not in [card.lower() for card in wishlist]:
                 print("{} is not in the wish list".format(card_name.text))
                 cards_ignored.append(card_name.text)
                 continue
-            if card_name.text not in cards_info:
-                cards_info[card_name.text] = []
+            if not include_foil:
+                card_search = re.search('- Foil', card_name.text)
+                if card_search != None:
+                    print("Ignoring card {} because it is foiled.".format(card_name.text))
+                    continue
+            if card_basename not in cards_info:
+                cards_info[card_basename] = []
             card_in_sets = card.find_all('div', class_='inner')
             for card_in_set in card_in_sets:
                 card_set = card_in_set.find('span', class_='category')
@@ -113,8 +133,9 @@ def retrieve_cards_info(wishlist, selected_stores):
                         # We should be able to load the locale in the docker container to translate
                         # prices > 1000 (with comma), but I have trouble loading the locale in alpine
                         card_info_variant["price"] = locale.atof(card_in_set_price_info[1].replace(',', ''))
-                        card_info_variant["store"] = store['abbr']
-                        cards_info[card_name.text].append(card_info_variant)
+                        card_info_variant["store"] = html['store']['abbr']
+                        card_info_variant["variant_name"] = card_name.text
+                        cards_info[card_basename].append(card_info_variant)
     return cards_info, list(set(cards_ignored))
 
 

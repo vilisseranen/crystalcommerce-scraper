@@ -19,17 +19,21 @@
         </div>
     </div>
     <div class="columns">
-        <div class="field column is-one-third">
+        <div class="field column is-one-fourth">
             <label class="label">Languages</label>
             {{ form.languages() }}
         </div>
-        <div class="field column is-one-third">
+        <div class="field column is-one-fourth">
             <label class="label">Stores</label>
             {{ form.stores() }}
         </div>
-        <div class="field column is-one-third">
+        <div class="field column is-one-fourth">
             <label class="label">Conditions</label>
             {{ form.conditions() }}
+        </div>
+        <div class="field column is-one-fourth">
+            <label class="label">Include foil</label>
+            {{ form.include_foil() }}
         </div>
     </div>
 </form>

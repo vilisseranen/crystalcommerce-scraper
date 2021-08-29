@@ -23,7 +23,7 @@ def index():
         if listForm.stores.data:
             selected_stores = [store for store in STORES if store['abbr'] in listForm.stores.data]
         selected_stores = [store for store in selected_stores if store['name'] != 'Min']
-        cardsInfo, cardsIgnored = retrieve_cards_info(query, selected_stores)
+        cardsInfo, cardsIgnored = retrieve_cards_info(query, selected_stores, listForm.include_foil.data)
         missing_cards = [sub('^(\d+x?)?(.*)', '\\2', line).strip() for line in listForm.list.data.split("\n")]
     if cardsInfo:
         languages_filter = listForm.languages.data if listForm.languages.data else None
@@ -42,7 +42,7 @@ def index():
         totals['min'] = sum(totals.values())
         buylistKeysLowerCase = [k.lower() for k, v in buylist.items()]
         missing_cards = [item for item in missing_cards if item.lower() not in buylistKeysLowerCase]
-        
+            
     return render_template('form.html',
         form=listForm,
         cardList=buylist,
